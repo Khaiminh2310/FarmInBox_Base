@@ -65,7 +65,7 @@
 // -----------------------------
 // Timing intervals
 // -----------------------------
-#define SENSOR_INTERVAL_MS 30000UL
+#define SENSOR_INTERVAL_S 10UL
 #define NETWORK_INTERVAL_MS 200
 #define MOTOR_INTERVAL_MS 50UL
 
@@ -108,6 +108,8 @@ void ledBlue();
 void ledGreen();
 void ledRed();
 void ledPurple();
+void getShtc3Data();
+void getPzemData();
 
 extern SemaphoreHandle_t xSemaphoreWiFi;
 extern SemaphoreHandle_t xSemaphoreConfig;
@@ -115,6 +117,8 @@ extern SemaphoreHandle_t xSemaphoreConfig;
 extern bool _param;
 extern Adafruit_NeoPixel pixels;
 extern ColorMode colorMode;
+extern dataSHTC3 shtc3_data;
+extern dataPzem pzem_data;
 
 extern void suppend_tasks();
 extern void resume_tasks();

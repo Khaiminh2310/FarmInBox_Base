@@ -9,6 +9,7 @@
 
 #include <Arduino.h>
 #include <SoftwareSerial.h>
+#include "pzem_define.h"
 
 /* -------------- DEBUG (uncomment to open the Debug function) ------------- */
 
@@ -36,10 +37,9 @@ enum
 
 typedef struct dataSHTC3
 {
-  float temperatureC;
+  float temperature;
   float humidity;
 };
-
 
 /* ------------------------------------------------------------------------- */
 
@@ -63,7 +63,6 @@ public:
 
   /* Initialization */
   void begin(uint32_t baud);
-  void init();
 
   bool readHoldingRegisters(uint16_t reg, uint16_t len, uint16_t *result);
   bool readInputRegisters(uint16_t reg, uint16_t len, uint16_t *result);
@@ -77,6 +76,7 @@ public:
 
 /* ------------------------------------------------------------------------- */
 
-extern class RS485 rs485;
+extern RS485 shtc3;
+extern RS485 pzem;
 
 #endif

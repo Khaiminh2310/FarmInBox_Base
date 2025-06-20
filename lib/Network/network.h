@@ -20,9 +20,12 @@ public:
 
     WiFiManagerParameter *custom_device_id = nullptr;
     WiFiManagerParameter *custom_token = nullptr;
+    WiFiManagerParameter *custom_interval = nullptr;
 
     char device_id[51] = {0};
     char token[101] = {0};
+    char interval_buffer[11];
+    uint32_t interval;
 
     bool new_config = false;
     bool portal_initialized = false;

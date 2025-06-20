@@ -8,6 +8,7 @@ Network::Network() {};
 Network::~Network() {
     delete custom_device_id;
     delete custom_token;
+    delete custom_interval;
 };
 
 void Network::initWifi()
@@ -83,9 +84,12 @@ bool Network::portalConfig()
     {
         if (custom_device_id == nullptr) custom_device_id = new WiFiManagerParameter("deviceId", "DEVICE ID", device_id, 50);
         if (custom_token == nullptr) custom_token = new WiFiManagerParameter("token", "TOKEN", token, 100);
+        snprintf(interval_buffer, sizeof(interval_buffer), "%u", interval);
+        if (custom_interval == nullptr) custom_interval = new WiFiManagerParameter("interval", "INTERVAL", interval_buffer, 10);
 
         wm.addParameter(custom_device_id);
         wm.addParameter(custom_token);
+        wm.addParameter(custom_interval);
 
         wm.setTitle(String("FarmInBox"));
         wm.setSaveParamsCallback(saveParamCallback);
@@ -146,6 +150,7 @@ bool Network::getParameters()
     preferences.begin("storage", false);
     String _token   = preferences.getString("token");
     String _id      = preferences.getString("device_id");
+    interval        = preferences.getULong("interval", SENSOR_INTERVAL_S);
     preferences.end();
 
     if (_id.isEmpty() || _token.isEmpty())
@@ -159,6 +164,7 @@ bool Network::getParameters()
 
     DEBUG_SERIAL("Token     : %s", token);
     DEBUG_SERIAL("Device_id : %s", device_id);
+    DEBUG_SERIAL("Interval  : %u", interval);
 
     return true;
 }
@@ -169,6 +175,7 @@ void Network::putParamaters()
     preferences.begin("storage", false);
     preferences.putString("token", token);
     preferences.putString("device_id", device_id);
+    preferences.putULong("interval", interval);
     preferences.end();
 }
 
@@ -180,6 +187,16 @@ class Network network;
 void saveParamCallback()
 {
     DEBUG_SERIAL("Save param callback");
+
+    long value = atol((network.custom_interval->getValue()));
+    if (value <= 0)
+    {
+        network.interval = SENSOR_INTERVAL_S;
+    }
+    else
+    {
+        network.interval = value;
+    }
 
     const char* new_token = network.custom_token->getValue();
     if (strcmp(new_token, network.token) != 0)

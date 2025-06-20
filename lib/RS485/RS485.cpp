@@ -38,12 +38,6 @@ void RS485::begin(uint32_t baud)
   }
 }
 
-void RS485::init()
-{
-  begin(BAUDRATE_DEFAULT);
-  vTaskDelay(100 / portTICK_PERIOD_MS);
-}
-
 /* --------------------------------- Common -------------------------------- */
 
 bool RS485::readHoldingRegisters(uint16_t reg, uint16_t len, uint16_t *result)
@@ -252,4 +246,5 @@ bool RS485::writeRegister(uint8_t cmd, uint16_t reg, uint16_t *values, uint16_t 
 }
 
 
-RS485 rs485(MODBUS_RX_PIN, MODBUS_TX_PIN, MAX485_DE, MAX485_RE, 0x01);
+RS485 shtc3(MODBUS_RX_PIN, MODBUS_TX_PIN, MAX485_DE, MAX485_RE, 0x01);
+RS485 pzem(MODBUS_RX_PIN, MODBUS_TX_PIN, MAX485_DE, MAX485_RE, 0xF8);

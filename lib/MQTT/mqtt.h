@@ -21,6 +21,7 @@ public:
     void disconnect();
     bool loop();
     void reconnect();
+    bool isConnected();
     static void callback(char* topic, uint8_t* payload, unsigned int length);
 
 private:

@@ -8,6 +8,9 @@ Adafruit_NeoPixel pixels(NUMPIXELS, LED_PIN, NEO_GRB + NEO_KHZ800);
 ColorMode colorMode = OFF;
 WorkMode workMode = MANUAL;
 
+dataSHTC3 shtc3_data;
+dataPzem pzem_data;
+
 bool _param = false;
 bool config_triggered = false;
 
@@ -15,6 +18,7 @@ TaskHandle_t buttonTask = NULL;
 TaskHandle_t mqttTask = NULL;
 TaskHandle_t configPortalTask = NULL;
 TaskHandle_t connectionTask = NULL;
+TaskHandle_t sendDataTask = NULL;
 
 SemaphoreHandle_t xSemaphoreWiFi = NULL;
 SemaphoreHandle_t xSemaphoreConfig = NULL;
@@ -24,6 +28,7 @@ void button_task(void *pvParameters);
 void config_portal_task(void *pvParameters);
 void mqtt_task(void *pvParameters);
 void connection_task(void *pvParameters);
+void send_data_task(void* pvParameters);
 void suppend_tasks();
 void resume_tasks();
 
@@ -38,7 +43,6 @@ void setup()
 
     pinMode(CONFIG_PIN, INPUT_PULLUP);
 
-    rs485.init();
     _param = network.getParameters();
 
     xSemaphoreConfig = xSemaphoreCreateBinary();
@@ -242,6 +246,25 @@ void mqtt_task(void *pvParameters)
     DEBUG_SERIAL("Deleted %s", MQTT_TASK);
     mqttTask = NULL;
     vTaskDelete(NULL);
+}
+
+void send_data_task(void* pvParameters)
+{
+  const TickType_t xCycle = pdMS_TO_TICKS(10000);
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+
+  while (1)
+  {
+    getShtc3Data();
+    getPzemData();
+
+    if (mqtt.isConnected())
+    {
+        //@TODO: mqtt.publish
+    }
+
+    vTaskDelayUntil(&xLastWakeTime, xCycle);
+  }
 }
 
 void suppend_tasks()

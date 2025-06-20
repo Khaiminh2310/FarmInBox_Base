@@ -66,6 +66,11 @@ void MQTTClient::reconnect()
     }
 }
 
+bool MQTTClient::isConnected()
+{
+    return client.connected();
+}
+
 void MQTTClient::callback(char* topic, uint8_t* payload, unsigned int length)
 {
     char message[length + 1];

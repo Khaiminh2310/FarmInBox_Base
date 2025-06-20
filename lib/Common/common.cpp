@@ -1,4 +1,5 @@
 #include "common.h"
+#include "RS485.h"
 #include <esp_wifi.h>
 
 ///////////////////////////////// COMMON FUNCTIONS /////////////////////////////////
@@ -56,6 +57,57 @@ void log_msgfmt(const char *msg, ...)
     {
         buffer[sizeof(buffer) - 1] = '\0';
         Serial.println(buffer);
+    }
+}
+
+void getShtc3Data()
+{
+    shtc3.begin(4800);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    uint16_t data[2] = {0};
+    if (shtc3.readHoldingRegisters(0x0000, 2, data))
+    {
+        DEBUG_SERIAL("Read SHTC3 success.");
+        shtc3_data.humidity = data[0] / 10.0f;
+        if (data[1] >= 32768.0) // Negative value
+        {
+            data[1] = data[1] - 65536.0;
+        }
+        shtc3_data.temperature = data[1] / 10.0;
+    }
+    else
+    {
+        DEBUG_SERIAL("Read SHTC3 fail.");
+        shtc3_data.humidity = 0.0f;
+        shtc3_data.temperature = 0.0f;
+    }
+    DEBUG_SERIAL("Temp: %.02f oC - Hum: %.02f %%", shtc3_data.temperature, shtc3_data.humidity);
+}
+
+void getPzemData()
+{
+    pzem.begin(9600);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+    uint16_t data[REG_TOTAL] = {0};
+    if (pzem.readInputRegisters(0x0000, 10, data))
+    {
+        DEBUG_SERIAL("Read PZEM004T success.");
+        pzem_data.volt         = PZEM_GET_VALUE(REG_VOLTAGE, SCALE_V);
+        pzem_data.ampe         = PZEM_GET_VALUE2(REG_CURRENT_H, REG_CURRENT_L, SCALE_A);
+        pzem_data.power        = PZEM_GET_VALUE2(REG_POWER_H, REG_POWER_L, SCALE_P);
+        pzem_data.energy       = PZEM_GET_VALUE2(REG_ENERGY_H, REG_ENERGY_L, SCALE_E);
+        pzem_data.freq         = PZEM_GET_VALUE(REG_FREQ, SCALE_H);
+        pzem_data.powerFactor  = PZEM_GET_VALUE(REG_PF, SCALE_PF);
+    }
+    else
+    {
+        DEBUG_SERIAL("Read PZEM004T fail.");
+        pzem_data.volt = 0.0;
+        pzem_data.ampe = 0.0;
+        pzem_data.power = 0.0;
+        pzem_data.energy = 0.0;
+        pzem_data.freq = 0.0;
+        pzem_data.powerFactor = 0.0;
     }
 }
 
