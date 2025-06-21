@@ -8,7 +8,6 @@
 #define __RS485_MODBUS_H__
 
 #include <Arduino.h>
-#include <SoftwareSerial.h>
 #include "pzem_define.h"
 
 /* -------------- DEBUG (uncomment to open the Debug function) ------------- */
@@ -35,12 +34,6 @@ enum
   SOFT_SERIAL
 };
 
-typedef struct dataSHTC3
-{
-  float temperature;
-  float humidity;
-};
-
 /* ------------------------------------------------------------------------- */
 
 class RS485
@@ -58,11 +51,12 @@ private:
   bool writeRegister(uint8_t cmd, uint16_t reg, uint16_t *values, uint16_t len);
 
 public:
-  RS485(uint8_t rxPin, uint8_t txPin, int8_t dePin, int8_t rePin, uint8_t addr = ADDRESS_DEFAULT);
+  RS485(uint8_t rxPin, uint8_t txPin, uint8_t addr = ADDRESS_DEFAULT, int8_t dePin = -1, int8_t rePin = -1);
   virtual ~RS485() { delete port; }
 
   /* Initialization */
   void begin(uint32_t baud);
+  void setAddr(uint8_t addr);
 
   bool readHoldingRegisters(uint16_t reg, uint16_t len, uint16_t *result);
   bool readInputRegisters(uint16_t reg, uint16_t len, uint16_t *result);
@@ -72,11 +66,10 @@ public:
   int Running;
 };
 
-
-
 /* ------------------------------------------------------------------------- */
 
 extern RS485 shtc3;
 extern RS485 pzem;
+extern RS485 pressure;
 
 #endif

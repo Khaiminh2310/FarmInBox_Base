@@ -4,13 +4,15 @@
  *  @author khaiminh2310
  */
 
+#include "common.h"
 #include "RS485.h"
 #include "ModbusCRC.h"
-#include <common.h>
+#include <SoftwareSerial.h>
+
 
 /* ------------------------------ Constructor ------------------------------ */
 
-RS485::RS485(uint8_t rxPin, uint8_t txPin, int8_t dePin, int8_t rePin, uint8_t addr)
+RS485::RS485(uint8_t rxPin, uint8_t txPin, uint8_t addr, int8_t dePin, int8_t rePin)
 {
   SoftwareSerial *ss = new SoftwareSerial(rxPin, txPin);
   port = ss;
@@ -36,6 +38,11 @@ void RS485::begin(uint32_t baud)
     SoftwareSerial *ss = (SoftwareSerial *)port;
     ss->begin(baud);
   }
+}
+
+void RS485::setAddr(uint8_t addr)
+{
+  _addr = addr;
 }
 
 /* --------------------------------- Common -------------------------------- */
@@ -246,5 +253,6 @@ bool RS485::writeRegister(uint8_t cmd, uint16_t reg, uint16_t *values, uint16_t 
 }
 
 
-RS485 shtc3(MODBUS_RX_PIN, MODBUS_TX_PIN, MAX485_DE, MAX485_RE, 0x01);
-RS485 pzem(MODBUS_RX_PIN, MODBUS_TX_PIN, MAX485_DE, MAX485_RE, 0xF8);
+RS485 shtc3(MODBUS_RX_PIN, MODBUS_TX_PIN, SHTC3_ADDR_1, MAX485_DE, MAX485_RE);
+RS485 pzem(MODBUS_RX_PIN, MODBUS_TX_PIN, 0xF8, MAX485_DE, MAX485_RE);
+RS485 pressure(RX_PIN, TX_PIN, 0x01);

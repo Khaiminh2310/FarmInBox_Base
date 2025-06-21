@@ -63,25 +63,45 @@ void log_msgfmt(const char *msg, ...)
 void getShtc3Data()
 {
     shtc3.begin(4800);
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    vTaskDelay(50 / portTICK_PERIOD_MS);
+    shtc3.setAddr(SHTC3_ADDR_1);
     uint16_t data[2] = {0};
     if (shtc3.readHoldingRegisters(0x0000, 2, data))
     {
-        DEBUG_SERIAL("Read SHTC3 success.");
-        shtc3_data.humidity = data[0] / 10.0f;
+        DEBUG_SERIAL("Read SHTC3 1st success.");
+        shtc3_data_1.humidity = data[0] / 10.0f;
         if (data[1] >= 32768.0) // Negative value
         {
             data[1] = data[1] - 65536.0;
         }
-        shtc3_data.temperature = data[1] / 10.0;
+        shtc3_data_1.temperature = data[1] / 10.0;
     }
     else
     {
-        DEBUG_SERIAL("Read SHTC3 fail.");
-        shtc3_data.humidity = 0.0f;
-        shtc3_data.temperature = 0.0f;
+        DEBUG_SERIAL("Read SHTC3 1st fail.");
+        shtc3_data_1.humidity = 0.0f;
+        shtc3_data_1.temperature = 0.0f;
     }
-    DEBUG_SERIAL("Temp: %.02f oC - Hum: %.02f %%", shtc3_data.temperature, shtc3_data.humidity);
+
+    shtc3.setAddr(SHTC3_ADDR_2);
+    if (shtc3.readHoldingRegisters(0x0000, 2, data))
+    {
+        DEBUG_SERIAL("Read SHTC3 2nd success.");
+        shtc3_data_2.humidity = data[0] / 10.0f;
+        if (data[1] >= 32768.0) // Negative value
+        {
+            data[1] = data[1] - 65536.0;
+        }
+        shtc3_data_2.temperature = data[1] / 10.0;
+    }
+    else
+    {
+        DEBUG_SERIAL("Read SHTC3 2nd fail.");
+        shtc3_data_2.humidity = 0.0f;
+        shtc3_data_2.temperature = 0.0f;
+    }
+    DEBUG_SERIAL("Temp: %.02f oC - Hum: %.02f %%", shtc3_data_1.temperature, shtc3_data_1.humidity);
+    DEBUG_SERIAL("Temp2: %.02f oC - Hum2: %.02f %%", shtc3_data_2.temperature, shtc3_data_2.humidity);
 }
 
 void getPzemData()
@@ -108,6 +128,20 @@ void getPzemData()
         pzem_data.energy = 0.0;
         pzem_data.freq = 0.0;
         pzem_data.powerFactor = 0.0;
+    }
+}
+
+void getPressureData()
+{
+    uint16_t value;
+    if (pressure.readHoldingRegisters(0x0000, 1, &value))
+    {
+        float voltage = value * (5.0 / 4095.0);
+        pressure_value = (voltage - 0.5) / 4.0;
+    }
+    else
+    {
+        pressure_value = -1.0f;
     }
 }
 

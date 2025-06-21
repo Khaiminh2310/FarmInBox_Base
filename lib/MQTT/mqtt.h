@@ -24,6 +24,8 @@ public:
     bool isConnected();
     static void callback(char* topic, uint8_t* payload, unsigned int length);
 
+    char upMsg[MQTT_MAX_PACKET_SIZE] = {0};
+
 private:
     static void handleCommand(MQTTClient *subclient, const JsonDocument &doc);
 };

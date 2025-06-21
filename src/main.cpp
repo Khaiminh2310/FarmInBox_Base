@@ -8,8 +8,10 @@ Adafruit_NeoPixel pixels(NUMPIXELS, LED_PIN, NEO_GRB + NEO_KHZ800);
 ColorMode colorMode = OFF;
 WorkMode workMode = MANUAL;
 
-dataSHTC3 shtc3_data;
+dataSHTC3 shtc3_data_1;
+dataSHTC3 shtc3_data_2;
 dataPzem pzem_data;
+float pressure_value;
 
 bool _param = false;
 bool config_triggered = false;
@@ -32,11 +34,27 @@ void send_data_task(void* pvParameters);
 void suppend_tasks();
 void resume_tasks();
 
+static void create_msg();
+
 void setup()
 {
     Serial.begin(115200);
     vTaskDelay(1000 / portTICK_PERIOD_MS);
+    shtc3.begin(4800);
+    pressure.begin(4800);
+    analogReadResolution(12);
+    analogSetAttenuation(ADC_11db);
     DEBUG_SERIAL("Starting...");
+
+    uint16_t second_addr = SHTC3_ADDR_2;
+    if (shtc3.writeSingleHoldingRegister(0x07D0, &second_addr, 1))
+    {
+        DEBUG_SERIAL("Set address for 2nd SHTC3 sensor success");
+    }
+    else
+    {
+        DEBUG_SERIAL("Set address for 2nd SHTC3 sensor fail");
+    }
 
     pixels.begin();
     pixels.show();
@@ -257,10 +275,12 @@ void send_data_task(void* pvParameters)
   {
     getShtc3Data();
     getPzemData();
+    getPressureData();
+    create_msg();
 
     if (mqtt.isConnected())
     {
-        //@TODO: mqtt.publish
+        mqtt.publish(mqtt.upMsg);
     }
 
     vTaskDelayUntil(&xLastWakeTime, xCycle);
@@ -303,4 +323,26 @@ void resume_tasks()
         DEBUG_SERIAL("Resuming %s...", BUTTON_TASK);
         vTaskResume(buttonTask);
     }
+}
+
+static void create_msg()
+{
+    memset(mqtt.upMsg, 0, sizeof(mqtt.upMsg));
+    snprintf(
+        mqtt.upMsg,
+        sizeof(mqtt.upMsg),
+        "{\"Temp\":%.02f,\"Hum\":\"%.02f\",\"Temp2\":%.02f,\"Hum2\":\"%.02f\",\"Volt\":%.02f,\"Ampe\":\"%.02f\",\"Power\":\"%.02f\",\
+        \"Energy\":\"%.02f\",\"Freq\":\"%.02f\",\"Power Factor\":\"%.02f\",\"Pressure\":\"%.02f\"}",
+        shtc3_data_1.temperature,
+        shtc3_data_1.humidity,
+        shtc3_data_2.temperature,
+        shtc3_data_2.humidity,
+        pzem_data.volt,
+        pzem_data.ampe,
+        pzem_data.power,
+        pzem_data.energy,
+        pzem_data.freq,
+        pzem_data.powerFactor,
+        pressure_value
+    );
 }

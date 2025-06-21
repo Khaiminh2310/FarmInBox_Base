@@ -27,13 +27,4 @@ enum {
   REG_TOTAL
 };
 
-typedef struct dataPzem{
-  float volt;
-  float ampe;
-  float power;
-  float energy;
-  float freq;
-  float powerFactor;
-};
-
 #endif
