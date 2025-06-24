@@ -74,7 +74,7 @@ void setup()
     // --> WiFi connected
     if (_param)
     {
-        xTaskCreatePinnedToCore(mqtt_task, "mqttTask", STACK_SIZE_DEFAULT * 6, NULL, 2, &mqttTask, 1);
+        xTaskCreatePinnedToCore(mqtt_task, "mqttTask", STACK_SIZE_DEFAULT * 6, NULL, 2, &mqttTask, 0);
         _param = false;
     }
 
@@ -84,8 +84,9 @@ void setup()
         {
             vTaskDelay(200 / portTICK_PERIOD_MS);
         }
-        xTaskCreatePinnedToCore(connection_task, "connectionTask", STACK_SIZE_DEFAULT * 8, NULL, 3, &connectionTask, 1);
+        xTaskCreatePinnedToCore(connection_task, "connectionTask", STACK_SIZE_DEFAULT * 8, NULL, 3, &connectionTask, 0);
     }
+    xTaskCreatePinnedToCore(send_data_task, "sendDataTask", STACK_SIZE_DEFAULT * 4, NULL, 3, &sendDataTask, 1);
 }
 
 void loop() {}
@@ -273,9 +274,11 @@ void send_data_task(void* pvParameters)
 
   while (1)
   {
+    suppend_tasks();
     getShtc3Data();
     getPzemData();
     getPressureData();
+    resume_tasks();
     create_msg();
 
     if (mqtt.isConnected())
@@ -299,11 +302,6 @@ void suppend_tasks()
         DEBUG_SERIAL("Suspending %s...", CONFIG_TASK);
         vTaskSuspend(configPortalTask);
     }
-    if (connectionTask != NULL)
-    {
-        DEBUG_SERIAL("Suspending %s...", CHECK_CONNECTION_TASK);
-        vTaskSuspend(connectionTask);
-    }
 }
 
 void resume_tasks()
@@ -318,11 +316,6 @@ void resume_tasks()
         DEBUG_SERIAL("Resuming %s...", CHECK_CONNECTION_TASK);
         vTaskResume(connectionTask);
     }
-    if (buttonTask != NULL)
-    {
-        DEBUG_SERIAL("Resuming %s...", BUTTON_TASK);
-        vTaskResume(buttonTask);
-    }
 }
 
 static void create_msg()
@@ -331,8 +324,8 @@ static void create_msg()
     snprintf(
         mqtt.upMsg,
         sizeof(mqtt.upMsg),
-        "{\"Temp\":%.02f,\"Hum\":\"%.02f\",\"Temp2\":%.02f,\"Hum2\":\"%.02f\",\"Volt\":%.02f,\"Ampe\":\"%.02f\",\"Power\":\"%.02f\",\
-        \"Energy\":\"%.02f\",\"Freq\":\"%.02f\",\"Power Factor\":\"%.02f\",\"Pressure\":\"%.02f\"}",
+        "{\"Temp\":%.02f,\"Hum\":%.02f,\"Temp2\":%.02f,\"Hum2\":%.02f,\"Volt\":%.02f,\"Ampe\":%.02f,\
+        \"Power\":%.02f,\"Energy\":%.02f,\"Freq\":%.02f,\"Power Factor\":%.02f,\"Pressure\":%.02f}",
         shtc3_data_1.temperature,
         shtc3_data_1.humidity,
         shtc3_data_2.temperature,

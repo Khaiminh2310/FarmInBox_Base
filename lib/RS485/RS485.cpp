@@ -80,7 +80,7 @@ bool RS485::readRegister(uint8_t cmd, uint16_t reg, uint16_t *result, uint16_t l
 
   if (_dePin != -1) digitalWrite(_dePin, RS485Transmit);
   if (_rePin != -1) digitalWrite(_rePin, RS485Transmit);
-  vTaskDelay(10 / portTICK_PERIOD_MS);
+  vTaskDelay(2 / portTICK_PERIOD_MS);
 
   uint8_t frame[8];
   frame[0] = _addr;
@@ -101,8 +101,6 @@ bool RS485::readRegister(uint8_t cmd, uint16_t reg, uint16_t *result, uint16_t l
   DEBUG_PRINTLN("");
 #endif
 
-  vTaskDelay(50 / portTICK_PERIOD_MS);
-
   /* Number of bytes to respond
   **
   ** Addr : 1 Byte
@@ -111,11 +109,10 @@ bool RS485::readRegister(uint8_t cmd, uint16_t reg, uint16_t *result, uint16_t l
   ** Val  : 2 Byte
   ** Crc  : 2 Byte [L_CRC]  [H_CRC]
   */
-  if (_dePin != -1 || _rePin != -1) {
-    if (_dePin != -1) digitalWrite(_dePin, RS485Receive);
-    if (_rePin != -1) digitalWrite(_rePin, RS485Receive);
-    vTaskDelay(10 / portTICK_PERIOD_MS);
-  }
+  if (_dePin != -1) digitalWrite(_dePin, RS485Receive);
+  if (_rePin != -1) digitalWrite(_rePin, RS485Receive);
+  vTaskDelay(2 / portTICK_PERIOD_MS);
+
   int expectedLen = 5 + len * 2;
   uint8_t myBuf[256];
   int index = 0;
@@ -215,8 +212,6 @@ bool RS485::writeRegister(uint8_t cmd, uint16_t reg, uint16_t *values, uint16_t 
   }
   DEBUG_PRINTLN("");
 #endif
-
-  vTaskDelay(50 / portTICK_PERIOD_MS);
 
   if (_dePin != -1) digitalWrite(_dePin, RS485Receive);
   if (_rePin != -1) digitalWrite(_rePin, RS485Receive);
